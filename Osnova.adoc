@@ -75,6 +75,71 @@ R14/LR - адрес возврата функции. //Содержит его
 
 Был написан код, в котором проводится взаимодействие с регистрами.
 
+.Код
+[source, cpp, linenums]
+
+----
+#include "rccregisters.hpp" // for RCC
+#include "gpioaregisters.hpp" // for GPIOA
+#include "gpiocregisters.hpp" // for GPIOC
+
+std::uint32_t SystemCoreClock = 16'000'000U;
+
+extern "C"
+{
+int __low_level_init(void)
+{
+  //Switch on external 16 MHz oscillator
+  RCC::CR::HSION::On::Set();
+  while (RCC::CR::HSIRDY::NotReady::IsSet())
+  {
+
+  }
+  //Switch system clock on external oscillator
+  RCC::CFGR::SW::Hsi::Set();
+  while (!RCC::CFGR::SWS::Hsi::IsSet())
+  {
+  }
+  RCC::APB2ENR::SYSCFGEN::Enable::Set();
+  return 1;
+}
+}
+
+void delay(int cycles)
+{
+  for(int i = 0; i < cycles; ++i)
+  {
+    asm volatile("");
+  }
+}
+
+int main()
+{
+
+  RCC::AHB1ENR::GPIOAEN::Enable::Set() ;
+  RCC::AHB1ENR::GPIOCEN::Enable::Set() ;
+  GPIOA::MODER::MODER5::Output::Set() ;
+  GPIOC::MODER::MODER5::Output::Set() ;
+  GPIOC::MODER::MODER8::Output::Set() ;
+  GPIOC::MODER::MODER9::Output::Set() ;
+  
+  for(;;)
+  {
+     GPIOC::ODR::ODR8::High::Set();//библиотека синтаксической "обертки"
+
+     //обращение к данным по адресу регистра
+     std::uint32_t* ptr = reinterpret_cast<std::uint32_t*>(0x40020814) ;
+     *ptr |= (1U << 5U);
+     delay(1000000);
+     *ptr &= ~(1U << 5U);
+     delay(1000000);
+  }
+  return 1;
+}
+----
+
+<<<
+
 На видео показан результат работы программы (кода).
 
 video::VID_1.mp4[opts="muted"]
@@ -83,9 +148,9 @@ video::VID_1.mp4[opts="muted"]
 
 == Выводы
 [.text-left]
-//Выводы по лабораторной работе
+В ходе данной работы было проведено ознакомление с регистрами микронтроллера. Также был написан код программы, в которой переключение светодиодов осуществляется двумя различными способами через обращение к регистрам.
 
-[.text-center]
-== Ответы на контрольные вопросы
-[.text-left]
+//[.text-center]
+//== Ответы на контрольные вопросы
+//[.text-left]
 // закоментировать или убрать, если таковых нет
