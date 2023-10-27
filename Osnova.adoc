@@ -73,93 +73,11 @@ R14/LR - адрес возврата функции. //Содержит его
 
 === 2. Написать код программы для работы со светодиодами через регистры микроконтроллера.
 
-
-
-Регистры общего назначения выполняют специальные функции:
-
-оперативные (R0-R3, R12) - любая функция может использовать эти регистры для свободных создания и удаления данных;
-
-вспомогательные (R4-R11) - любая функция должна сохранить данных в регистре на входе, а при выходе восстановить их;
-
-специальные (R13-R15).
-
-Адрес каждого регистра обозначается целым числом (для ARM это 32-битное беззнаковое целое число). Каждый регистр в ARM имеет длину 32 бита. Регистр имеет поля - наборы ячеек, отвечающих за реализацию функций. У регистра и полей есть режимы доступа (чтение, запись).
-
 Был написан код, в котором проводится взаимодействие с регистрами.
 
-#include "rccregisters.hpp" // for RCC
-#include "gpioaregisters.hpp" // for GPIOA
-#include "gpiocregisters.hpp" // for GPIOC
+На видео показан результат работы программы (кода).
 
-std::uint32_t SystemCoreClock = 16'000'000U;
-
-extern "C"
-{
-int __low_level_init(void)
-{
-  //Switch on external 16 MHz oscillator
-  RCC::CR::HSION::On::Set();
-  while (RCC::CR::HSIRDY::NotReady::IsSet())
-  {
-
-  }
-  //Switch system clock on external oscillator
-  RCC::CFGR::SW::Hsi::Set();
-  while (!RCC::CFGR::SWS::Hsi::IsSet())
-  {
-  }
-  RCC::APB2ENR::SYSCFGEN::Enable::Set();
-  return 1;
-}
-}
-
-void delay(int cycles)
-{
-  for(int i = 0; i < cycles; ++i)
-  {
-    asm volatile("");
-  }
-}
-
-int main()
-{
-
-  RCC::AHB1ENR::GPIOAEN::Enable::Set() ;
-  RCC::AHB1ENR::GPIOCEN::Enable::Set() ;
-  GPIOA::MODER::MODER5::Output::Set() ;
-  GPIOC::MODER::MODER5::Output::Set() ;
-  GPIOC::MODER::MODER8::Output::Set() ;
-  GPIOC::MODER::MODER9::Output::Set() ;
-  GPIOC::ODR::ODR8::High::Set();
-  std::uint32_t* ptrC = reinterpret_cast<std::uint32_t*>(0x40020814) ; // регистр GPIOC
-  for(;;)
-  {
-     *ptrC |= (1U << 5U);
-     delay(1000000);
-     *ptrC &= ~(1U << 5U);
-     delay(1000000);
-  }
-  return 1;
-}
-На видео представлена работа данного кода на микроконтроллере.
-
-Видео - Демонстрация мигания светодиодов
-Для удобства при обращении к регистру специального назначения может быть использована библиотека синтаксической "обертки" над регистрами (обращение происходит как к ячейке памяти через указатель):
-
-GPIOC::ODR::ODR8::High::Set();
-Либо через обращение к данным по адресу регистра, при этом разыменовывается указатель для этого адреса:
-
-std::uint32_t* ptrC = reinterpret_cast<std::uint32_t*>(0x40020814) ; // регистр GPIOC
-*ptrС |= (1U << 5U);
-*ptrС &= ~(1U << 5U);
-
-----
-<<<<
-
-
-== Rere
-
-//video::ЛЬВ.mp4[]
+video::VID_1.mp4[opts="muted"]
 
 [.text-left]
 
