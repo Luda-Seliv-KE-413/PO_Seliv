@@ -13,6 +13,10 @@ toc::[]
 
 == Задание
 
+
+video::ACtD2W1ihWw[youtube]
+
+https://www.youtube.com/watch?v=ACtD2W1ihWw
 [.text-left]
 
 == Выводы
