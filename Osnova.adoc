@@ -14,9 +14,8 @@ toc::[]
 == Задание
 
 
-video::ACtD2W1ihWw[youtube]
+video::Галилео.Хлеба.mp4[]
 
-https://www.youtube.com/watch?v=ACtD2W1ihWw
 [.text-left]
 
 == Выводы
