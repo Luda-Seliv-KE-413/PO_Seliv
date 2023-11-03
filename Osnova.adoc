@@ -3,7 +3,7 @@
 :figure-caption: Рисунок
 :table-caption: Таблица
 :toc-title: Оглавление
-include::Titul_list_Laba3.adoc[]
+include::Titul.adoc[]
 
 toc::[]
 
