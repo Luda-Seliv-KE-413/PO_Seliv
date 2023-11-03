@@ -1,6 +1,7 @@
 :toc: macro
+:toc-title: Оглавление
 
-include:: Titul_list_Report1.adoc[]
+include::Titul_list_Report1.adoc[]
 
 toc::[]
 
