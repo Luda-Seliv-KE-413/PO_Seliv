@@ -257,28 +257,30 @@ int main()
 {
   
   RCC::AHB1ENR::GPIOAEN::Enable::Set() ;
-  
   RCC::AHB1ENR::GPIOCEN::Enable::Set() ;
-  
   GPIOA::MODER::MODER5::Output::Set() ;
-  
   GPIOC::MODER::MODER5::Output::Set() ;
   GPIOC::MODER::MODER8::Output::Set() ;
   GPIOC::MODER::MODER9::Output::Set() ;
 
-  GPIOC::ODR::ODR8::High::Set();
-  std::uint32_t* ptrC = reinterpret_cast<std::uint32_t*>(0x40020814) ; // регистр GPIOC
   for(;;)
   {
-     *ptrC |= (1U << 5U); 
+     GPIOC::ODR::ODR8::High::Set();//библиотека синтаксической "обертки"
+
+     //обращение к данным по адресу регистра
+     std::uint32_t* ptr = reinterpret_cast<std::uint32_t*>(0x40020814) ;
+     *ptr |= (1U << 5U);
      delay(1000000);
-     *ptrC &= ~(1U << 5U);
+     *ptr &= ~(1U << 5U);
      delay(1000000);
   }
-
   return 1;
 }
 ----
+На видео представлен резуьтат работы программы
+
+.Видео - Демонстрация мигания светодиода с частотой тактирования 32 МГц
+video::VID_3Lab.mp4[opts="muted"]
 
 == Выводы
 [.text-left]
