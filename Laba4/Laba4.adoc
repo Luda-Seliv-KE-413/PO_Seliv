@@ -79,109 +79,11 @@ toc::[]
 * *GPIOxLCKR (port configuration lock register)*. Позволяет «заморозить», то есть защитить от изменения текущую настройку конфигурации. Можно запретить модификацию следующих регистров управления: *GPIOx_MODER*, *GPIOx_OTYPER*, *GPIOx_OSPEEDR*, *GPIOx_PUPDR*, *GPIOx_AFRL*,  *GPIOx_AFRH*.
 
 == Задание
-Сделать программу, которая будет переключать светодиоды на плате по алгоритму: включить 1 светодиод, задержка, включить 2 светодиод, задержка и т.д, а затем погасить в обратном порядке. 
-//Выполнить основную часть программы с помощью отдельного класса.
+Сделать программу, которая будет переключать светодиоды на плате по алгоритму: включить 1 светодиод, задержка, включить 2 светодиод, задержка и т.д, а затем погасить в обратном порядке.
+//Листинг кодов
+//На видео представлена работа программы.
 
-//Листинг pin.h
-//[source, cpp, linenums]
-//----
-//#ifndef PIN
-//#define PIN
-
-//#include "gpiocregisters.hpp" // for GPIOC
-//#include "gpioaregisters.hpp" // for GPIOA
-
-//template<typename Port, int pinNumber>
-//class Pin
-//{
-//public:
-  //void Toggle()
-  //{
-    //Port::ODR::Toggle(1 << pinNumber) ;
-  //}
-//} ;
-
-//#endif
-
-//#ifndef GarLand
-//#define GarLand
-
-//template<auto& pin1,auto& pin2,auto& pin3,auto& pin4, int& time>
-//class Garland
-//{
-//public:
-    //void delay(int cycles)
-    //{
-      //for(int i = 0; i < cycles; ++i)
-      //{
-        //asm volatile("");
-      //}
-    //}
-    //void Toggle_Garland()
-    //{
-      //pin1.Toggle();
-      //delay(time);
-      //pin2.Toggle();
-      //delay(time);
-      //pin3.Toggle();
-      //delay(time);
-      //pin4.Toggle();
-      //delay(time);
-    //}
-//};
-
-//#endif
-//----
-
-Листинг main.cpp
-//[source, cpp, linenums]
-//----
-//#include "rccregisters.hpp" // for RCC
-//#include "gpioaregisters.hpp" // for GPIOA
-//#include "pin.h"
-//#include "gpiocregisters.hpp" // for GPIOC
-
-//std::uint32_t SystemCoreClock = 16'000'000U;
-
-//extern "C" {
-  //int __low_level_init(void)
-  //{
-  //}
-//}
-
-//Pin<GPIOA,5> pin1 ;
-//Pin<GPIOC,9> pin2 ;
-//Pin<GPIOC,8> pin3 ;
-//Pin<GPIOC,5> pin4 ;
-//int time = 2500000 ;
-//Garland<pin1,pin2,pin3,pin4,time> garland;
-
-//int main()
-//{
-  
-  //Подать тактирование на порт А
-  //RCC::AHB1ENR::GPIOAEN::Enable::Set() ;
-  //Подать тактирование на порт С
-  //RCC::AHB1ENR::GPIOCEN::Enable::Set() ;
-  //GPIOA::MODER::MODER5::Output::Set() ; // установить порт А.5 на выход
-  //Светодиоды на портах C.5,C.8, C.9 на выход
-  //GPIOC::MODER::MODER5::Output::Set() ;
-  //GPIOC::MODER::MODER8::Output::Set() ;
-  //GPIOC::MODER::MODER9::Output::Set() ;
-  
-  //for(;;)
-  //{
-    // Гирлянда: зажечь 1 светодиод, задержка, 2, задержка и т.д. И потом также гасить
-    //garland.Toggle_Garland() ;
-  //}
-  
-  //return 1;
-//}
-//----
-
-На видео представлена работа программы.
-
-.Видео - Демонстрация "гирлянды"
+//.Видео - Демонстрация "гирлянды"
 //video::Video.mp4[opts="muted"]
 
 == Выводы
