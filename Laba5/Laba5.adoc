@@ -1,0 +1,26 @@
+:toc: macro
+:icons: font
+:figure-caption: Рисунок
+:table-caption: Таблица
+:toc-title: Оглавление
+include::Titul_list_Laba5.adoc[]
+
+toc::[]
+
+---
+[.text-left]
+== Цель лабораторной работы
+
+== Задание
+
+[.text-left]
+
+== Выводы
+[.text-left]
+//Выводы по лабораторной работе
+
+[.text-center]
+== Ответы на контрольные вопросы
+[.text-left]
+// закоментировать или убрать, если таковых нет
+
