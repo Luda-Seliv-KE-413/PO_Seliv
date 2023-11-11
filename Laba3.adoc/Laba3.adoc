@@ -207,44 +207,45 @@ image::Система тактирования.png[]
 ----
 #include "rccregisters.hpp" // for RCC
 #include "gpioaregisters.hpp" // for GPIOA
-#include "gpiocregisters.hpp" // for GPIOC
+#include "gpiocregisters.hpp" // for GPION
 
 std::uint32_t SystemCoreClock = 16'000'000U;
 
 extern "C"
 {
-  int __low_level_init(void)
-  {
-    // Switch on HSI
-    RCC::CR::HSION::On::Set();    
-    while (RCC::CR::HSIRDY::NotReady::IsSet())
-    {      
-    }
-    // Switch on PLL
-    RCC::CR::PLLON::On::Set(); 
-    // All PLL to 0
-    *reinterpret_cast<std::uint32_t*>(0x40023804) &= 0;
-    // PLL with HSI source
-    RCC::PLLCFGR::PLLSRC::HsiSource::Set();
-    // PLLP = 8
-    RCC::PLLCFGR::PLLP0::Pllp8::Set();
-    // PLLM = 4
-    *reinterpret_cast<std::uint32_t*>(0x40023804) |= (1U << 2U);
-    // PLLN = 64
-    *reinterpret_cast<std::uint32_t*>(0x40023804) |= (1U << 12U);
-    while (RCC::CR::PLLRDY::Unclocked::IsSet())
-    {      
-    }
-    // PLL on SW
-    RCC::CFGR::SW::Pll::Set();
-    while (!RCC::CFGR::SWS::Pll::IsSet())
-    {      
-    }
-    RCC::APB2ENR::SYSCFGEN::Enable::Set();   
-    return 1;
-  }
+int __low_level_init(void)
+{
+// Включение внутреннего генератора
+RCC::CR::HSION::On::Set();
+while (RCC::CR::HSIRDY::NotReady::IsSet())
+{
 }
-
+// All PLL to 0
+*reinterpret_cast<std::uint32_t*>(0x40023804) &= 0;
+// PLL with HSI source
+RCC::PLLCFGR::PLLSRC::HsiSource::Set();
+// PLLP = 8
+*reinterpret_cast<std::uint32_t*>(0x40023804) |=(1U << 16U);
+*reinterpret_cast<std::uint32_t*>(0x40023804) |= (1U << 17U);
+// PLLM = 8
+*reinterpret_cast<std::uint32_t*>(0x40023804) |= (1U << 3U);
+// PLLN = 128
+*reinterpret_cast<std::uint32_t*>(0x40023804) |= (1U << 13U);
+// Switch on PLL
+RCC::CR::PLLON::On::Set();
+while (RCC::CR::PLLRDY::Unclocked::IsSet())
+{
+}
+// PLL on SW
+RCC::CFGR::SW::Pll::Set();
+while (!RCC::CFGR::SWS::Pll::IsSet())
+{
+}
+RCC::CR::HSION::Off::Set();
+RCC::APB2ENR::SYSCFGEN::Enable::Set();
+return 1;
+}
+}
 void delay(int cycles)
 {
   for(int i = 0; i < cycles; ++i)
@@ -252,7 +253,6 @@ void delay(int cycles)
     asm volatile("");
   }
 }
-
 int main()
 {
   
@@ -262,7 +262,7 @@ int main()
   GPIOC::MODER::MODER5::Output::Set() ;
   GPIOC::MODER::MODER8::Output::Set() ;
   GPIOC::MODER::MODER9::Output::Set() ;
-
+  
   for(;;)
   {
      GPIOC::ODR::ODR8::High::Set();//библиотека синтаксической "обертки"
@@ -276,11 +276,13 @@ int main()
   }
   return 1;
 }
+
+
 ----
 На видео представлен резуьтат работы программы
 
 .Видео - Демонстрация мигания светодиода с частотой тактирования 32 МГц
-video::VID_3Lab.mp4[opts="muted"]
+video::VID_3Lab.mp4[opts="muted"]//Заменить видео
 
 == Выводы
 [.text-left]
