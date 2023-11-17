@@ -80,11 +80,184 @@ toc::[]
 
 == Задание
 Сделать программу, которая будет переключать светодиоды на плате по алгоритму: включить 1 светодиод, задержка, включить 2 светодиод, задержка и т.д, а затем погасить в обратном порядке.
-//Листинг кодов
-//На видео представлена работа программы.
 
-//.Видео - Демонстрация "гирлянды"
-//video::Video.mp4[opts="muted"]
+=== Реализация 1. "Прямой" код
+
+Листинг кода
+[source, cpp, linenums]
+----
+#include "rccregisters.hpp" // for RCC
+#include "gpioaregisters.hpp" // for GPIOA
+#include "gpiocregisters.hpp" // for GPIOC
+#include <iostream>
+
+std::uint32_t SystemCoreClock = 16'000'000U;
+
+extern "C"
+{
+int __low_level_init(void)
+{
+  //Switch on external 16 MHz oscillator
+  RCC::CR::HSION::On::Set();
+  while (RCC::CR::HSIRDY::NotReady::IsSet())
+  {
+
+  }
+  //Switch system clock on external oscillator
+  RCC::CFGR::SW::Hsi::Set();
+  while (!RCC::CFGR::SWS::Hsi::IsSet())
+  {
+  }
+  RCC::APB2ENR::SYSCFGEN::Enable::Set();
+  return 1;
+}
+}
+
+void delay(int cycles)
+{
+  for(int i = 0; i < cycles; ++i)
+  {
+    asm volatile("");
+  }
+}
+
+int main()
+{
+  //Подать тактирование на порт A
+  RCC::AHB1ENR::GPIOAEN::Enable::Set() ;
+  //Подать тактирование на порт С
+  RCC::AHB1ENR::GPIOCEN::Enable::Set() ;
+  //Установка порта А (GPIOA) 5 бит (MODER5) на выход
+  GPIOA::MODER::MODER5::Output::Set() ;
+  //Порт С.5
+  GPIOC::MODER::MODER5::Output::Set() ;
+  //Порт С.8
+  GPIOC::MODER::MODER8::Output::Set() ;
+  //Порт с.9
+  GPIOC::MODER::MODER9::Output::Set() ;
+
+  for(;;)
+  {
+      GPIOC::ODR::ODR5::High::Set();
+      delay(1000000);
+    
+      GPIOC::ODR::ODR8::High::Set();
+      delay(1000000);
+    
+      GPIOC::ODR::ODR9::High::Set();
+      delay(1000000);
+     
+      GPIOA::ODR::ODR5::High::Set();
+      delay(1000000);
+    
+      GPIOA::ODR::ODR5::Low::Set();
+      delay(1000000);
+    
+      GPIOC::ODR::ODR9::Low::Set();
+      delay(1000000);
+    
+      GPIOC::ODR::ODR8::Low::Set();
+      delay(1000000);
+      
+      GPIOC::ODR::ODR5::Low::Set();
+      delay(1000000);
+  }
+  return 1;
+}
+
+----
+
+.Видео - Демонстрация "Елочки"
+video::VID4.1_Ёлочка.mp4[opts="muted"]
+
+=== Реализация 2. Через классы
+
+Листинг кода
+[source, cpp, linenums]
+----
+#include "rccregisters.hpp" // for RCC
+#include "gpioaregisters.hpp" // for GPIOA
+#include "gpiocregisters.hpp" // for GPIOC
+#include <iostream>
+
+std::uint32_t SystemCoreClock = 16'000'000U;
+
+extern "C"
+{
+int __low_level_init(void)
+{
+  //Switch on external 16 MHz oscillator
+  RCC::CR::HSION::On::Set();
+  while (RCC::CR::HSIRDY::NotReady::IsSet())
+  {
+
+  }
+  //Switch system clock on external oscillator
+  RCC::CFGR::SW::Hsi::Set();
+  while (!RCC::CFGR::SWS::Hsi::IsSet())
+  {
+  }
+  RCC::APB2ENR::SYSCFGEN::Enable::Set();
+  return 1;
+}
+}
+
+void delay(int cycles)
+{
+  for(int i = 0; i < cycles; ++i)
+  {
+    asm volatile("");
+  }
+}
+
+int main()
+{
+  //Подать тактирование на порт A
+  RCC::AHB1ENR::GPIOAEN::Enable::Set() ;
+  //Подать тактирование на порт С
+  RCC::AHB1ENR::GPIOCEN::Enable::Set() ;
+  //Установка порта А (GPIOA) 5 бит (MODER5) на выход
+  GPIOA::MODER::MODER5::Output::Set() ;
+  //Порт С.5
+  GPIOC::MODER::MODER5::Output::Set() ;
+  //Порт С.8
+  GPIOC::MODER::MODER8::Output::Set() ;
+  //Порт с.9
+  GPIOC::MODER::MODER9::Output::Set() ;
+
+  for(;;)
+  {
+      GPIOC::ODR::ODR5::High::Set();
+      delay(1000000);
+    
+      GPIOC::ODR::ODR8::High::Set();
+      delay(1000000);
+    
+      GPIOC::ODR::ODR9::High::Set();
+      delay(1000000);
+     
+      GPIOA::ODR::ODR5::High::Set();
+      delay(1000000);
+    
+      GPIOA::ODR::ODR5::Low::Set();
+      delay(1000000);
+    
+      GPIOC::ODR::ODR9::Low::Set();
+      delay(1000000);
+    
+      GPIOC::ODR::ODR8::Low::Set();
+      delay(1000000);
+      
+      GPIOC::ODR::ODR5::Low::Set();
+      delay(1000000);
+  }
+  return 1;
+}
+
+----
+
+//.Видео - Демонстрация "Елочки через классы"
+//video::VID4.2_Ёлочка.mp4[opts="muted"]
 
 == Выводы
 В ходе данной работы ознакомились с портами и их режимами работы. 
