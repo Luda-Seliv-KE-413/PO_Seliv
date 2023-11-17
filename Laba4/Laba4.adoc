@@ -170,37 +170,41 @@ int main()
 .Видео - Демонстрация "Елочки"
 video::VID4.1_Ёлочка.mp4[opts="muted"]
 
-=== Реализация 2. Через классы
+=== Идея реализации через классы
 
-Листинг кода
+Листинг Pin.h
+[source, cpp, linenums]
+----
+#ifndef PIN
+#define PIN
+
+#include "gpioaregisters.hpp" //for GPIOA
+
+template<typename Port, int pinNumber>
+class Pin
+{
+public:
+void Toggle()
+{
+Port::ODR::Toggle(1«pinNumber);
+}
+};
+
+
+#endif
+----
+
+Листинг main.cpp
 [source, cpp, linenums]
 ----
 #include "rccregisters.hpp" // for RCC
 #include "gpioaregisters.hpp" // for GPIOA
 #include "gpiocregisters.hpp" // for GPIOC
+#include "Pin.h" //for  Pin
 #include <iostream>
 
 std::uint32_t SystemCoreClock = 16'000'000U;
 
-extern "C"
-{
-int __low_level_init(void)
-{
-  //Switch on external 16 MHz oscillator
-  RCC::CR::HSION::On::Set();
-  while (RCC::CR::HSIRDY::NotReady::IsSet())
-  {
-
-  }
-  //Switch system clock on external oscillator
-  RCC::CFGR::SW::Hsi::Set();
-  while (!RCC::CFGR::SWS::Hsi::IsSet())
-  {
-  }
-  RCC::APB2ENR::SYSCFGEN::Enable::Set();
-  return 1;
-}
-}
 
 void delay(int cycles)
 {
@@ -209,6 +213,22 @@ void delay(int cycles)
     asm volatile("");
   }
 }
+
+template<auto& ...pin>
+class Pins
+{
+  public:
+  void ToggleAll()
+  {
+    (..., pin.Toggle());
+  }
+};
+Pin<GPIOA, 5> pin1;
+Pin<GPIOC, 5> pin2;
+Pin<GPIOC, 8> pin3;
+Pin<GPIOC, 9> pin4;
+Pins<pin1, pin2, pin3, pin4> pins;
+
 
 int main()
 {
@@ -224,44 +244,166 @@ int main()
   GPIOC::MODER::MODER8::Output::Set() ;
   //Порт с.9
   GPIOC::MODER::MODER9::Output::Set() ;
-
+  
+  //Girland.NexMode();
   for(;;)
-  {
-      GPIOC::ODR::ODR5::High::Set();
-      delay(1000000);
-    
-      GPIOC::ODR::ODR8::High::Set();
-      delay(1000000);
-    
-      GPIOC::ODR::ODR9::High::Set();
-      delay(1000000);
-     
-      GPIOA::ODR::ODR5::High::Set();
-      delay(1000000);
-    
-      GPIOA::ODR::ODR5::Low::Set();
-      delay(1000000);
-    
-      GPIOC::ODR::ODR9::Low::Set();
-      delay(1000000);
-    
-      GPIOC::ODR::ODR8::Low::Set();
-      delay(1000000);
-      
-      GPIOC::ODR::ODR5::Low::Set();
-      delay(1000000);
+  {     
+    pins.ToggleAll();
+     //Girland.Upadate();
+    delay(1000000);
   }
   return 1;
 }
 
+
 ----
 
-//.Видео - Демонстрация "Елочки через классы"
+.Видео - Демонстрация идеи
+//video::VID4.2_Ёлочка.mp4[opts="muted"]
+
+=== Реализация 2. Через классы
+
+Листинг pin.h
+[source, cpp, linenums]
+----
+#ifndef PIN
+#define PIN
+
+#include "gpiocregisters.hpp" // for GPIOC
+#include "gpioaregisters.hpp" // for GPIOA
+#include "IPin.h" // for IPin
+
+template<typename Port, int pinNumber>
+class Pin : public IPin
+{
+public:
+  void Toggle() const override
+  {
+    Port::ODR::Toggle(1 << pinNumber) ;
+  }
+} ;
+
+#endif
+----
+
+Листинг ipin.h
+[source, cpp, linenums]
+----
+#ifndef IPIN
+#define IPIN
+
+class IPin
+{
+public:
+  virtual void Toggle() const = 0;
+};
+
+#endif
+----
+
+Листинг imode.h
+[source, cpp, linenums]
+----
+#ifndef IMODE
+#define IMODE
+
+class IMode
+{
+public:
+  virtual void Update() = 0;
+};
+
+#endif
+----
+
+Листинг treeng.h
+[source, cpp, linenums]
+----
+#ifndef TREENG
+#define TREENG
+
+#include "imode.h" // for IMode
+#include <array>
+
+template<auto&...pins>
+class Treeng : public IMode
+{
+public:
+  void Update() override
+  {
+    leds[i++]->Toggle();
+    if(i == leds.size())
+    {
+      i = 0;
+    }
+  }
+private:
+  std::size_t i = 0;
+  std::array<IPin*, sizeof ...(pins)> leds = {&pins...};
+};
+
+#endif
+----
+
+Листинг main.cpp
+[source, cpp, linenums]
+----
+#include "rccregisters.hpp" // for RCC
+#include "gpioaregisters.hpp" // for GPIOA
+#include "gpiocregisters.hpp" // for GPIOC
+#include "Pin.h"
+#include "IPin.h"
+#include <iostream>
+#include <array>
+#include "treeng.h" // for Treeng
+
+std::uint32_t SystemCoreClock = 16'000'000U;
+
+void delay(int cycles)
+    {
+      for(int i = 0; i < cycles; ++i)
+      {
+        asm volatile("");
+      }
+    }
+
+Pin<GPIOA,5> pin1 ;
+Pin<GPIOC,9> pin2 ;
+Pin<GPIOC,8> pin3 ;
+Pin<GPIOC,5> pin4 ;
+Treeng<pin1, pin2, pin3, pin4> treeng;
+int main()
+{
+
+    //Подать тактирование на порт A
+  RCC::AHB1ENR::GPIOAEN::Enable::Set() ;
+  //Подать тактирование на порт С
+  RCC::AHB1ENR::GPIOCEN::Enable::Set() ;
+  //Установка порта А (GPIOA) 5 бит (MODER5) на выход
+  GPIOA::MODER::MODER5::Output::Set() ;
+  //Порт С.5
+  GPIOC::MODER::MODER5::Output::Set() ;
+  //Порт С.8
+  GPIOC::MODER::MODER8::Output::Set() ;
+  //Порт с.9
+  GPIOC::MODER::MODER9::Output::Set() ;
+
+  for(;;)
+  {
+    // Гирлянда: зажечь 1 светодиод, задержка, 2, задержка и т.д. И потом также гасить
+    treeng.Update();
+    delay(1000000);
+  }
+  return 1;
+}
+----
+
+.Видео - Демонстрация "Елочки через классы"
 //video::VID4.2_Ёлочка.mp4[opts="muted"]
 
 == Выводы
 В ходе данной работы ознакомились с портами и их режимами работы. 
-Также была написана программа "Гирлянда/Ёлочка", которая переключала светодиоды по заданному алгоритму.
+Также была написана программа "Ёлочка", которая переключала светодиоды по заданному алгоритму.
 
 
 //== Ответы на контрольные вопросы
