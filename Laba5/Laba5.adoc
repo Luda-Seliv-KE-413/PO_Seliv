@@ -40,10 +40,161 @@ SOLID (сокр. от англ. single responsibility, open–closed, Liskov sub
 === Задание
 Написать программу, реализующую алгоритм "шахматы": включить нечетные светодиоды, задержка, выключить нечетные и включить четные светодиоды, задержка и т.д. Выполнить основную часть программы с помощью отдельного класса.
 
+Листинг pin.h
+[source, cpp, linenums]
+----
+#ifndef PIN
+#define PIN
+
+#include "gpiocregisters.hpp" // for GPIOC
+#include "gpioaregisters.hpp" // for GPIOA
+#include "IPin.h" // for IPin
+
+template<typename Port, int pinNumber>
+class Pin : public IPin
+{
+public:
+  void Toggle() const override
+  {
+    Port::ODR::Toggle(1 << pinNumber) ;
+  }
+} ;
+
+#endif
+----
+
+Листинг ipin.h
+[source, cpp, linenums]
+----
+#ifndef IPIN
+#define IPIN
+
+class IPin
+{
+public:
+  virtual void Toggle() const = 0;
+};
+
+#endif
+----
+
+Листинг imode.h
+[source, cpp, linenums]
+----
+#ifndef IMODE
+#define IMODE
+
+class IMode
+{
+public:
+  virtual void Update() = 0;
+};
+
+#endif
+----
+
+Листинг chess.h
+[source, cpp, linenums]
+----
+#ifndef CHESS
+#define CHESS
+
+#include "imode.h" // for IMode
+#include <array>
+
+template<auto&...pins>
+class Chess : public IMode
+{
+private:
+  bool flag = true;
+public:
+  void Update() override
+  {
+    if(flag) // нечетные светодиоды
+    {
+      for(std::size_t i = 0; i < leds.size(); i+=2)
+      {
+        leds[i]->Toggle();
+      }
+    } else // четные светодиоды
+    {
+      for(auto it: leds)
+      {
+        it->Toggle();
+      }
+    }
+    flag = false;
+  }
+private:
+  std::array<IPin*, sizeof ...(pins)> leds = {&pins...};
+};
+
+#endif
+----
+
+Листинг main.cpp
+[source, cpp, linenums]
+----
+#include "rccregisters.hpp" // for RCC
+#include "gpioaregisters.hpp" // for GPIOA
+#include "gpiocregisters.hpp" // for GPIOC
+#include "Pin.h"
+#include "IPin.h"
+#include <iostream>
+#include <array>
+//#include "treeng.h" // for Treeng
+#include "chess.h" // for ChessMode
+
+std::uint32_t SystemCoreClock = 16'000'000U;
+
+void delay(int cycles)
+    {
+      for(int i = 0; i < cycles; ++i)
+      {
+        asm volatile("");
+      }
+    }
+
+Pin<GPIOA,5> pin1 ;
+Pin<GPIOC,9> pin2 ;
+Pin<GPIOC,8> pin3 ;
+Pin<GPIOC,5> pin4 ;
+Chess<pin1, pin2, pin3, pin4> chess;
+int main()
+{
+
+    //Подать тактирование на порт A
+  RCC::AHB1ENR::GPIOAEN::Enable::Set() ;
+  //Подать тактирование на порт С
+  RCC::AHB1ENR::GPIOCEN::Enable::Set() ;
+  //Установка порта А (GPIOA) 5 бит (MODER5) на выход
+  GPIOA::MODER::MODER5::Output::Set() ;
+  //Порт С.5
+  GPIOC::MODER::MODER5::Output::Set() ;
+  //Порт С.8
+  GPIOC::MODER::MODER8::Output::Set() ;
+  //Порт с.9
+  GPIOC::MODER::MODER9::Output::Set() ;
+
+  for(;;)
+  {
+    // Гирлянда: зажечь 1 светодиод, задержка, 2, задержка и т.д. И потом также гасить
+    //treeng.Update();
+    //шахматы
+    chess.Update();
+    delay(1000000);
+  }
+  return 1;
+}
+----
+
+.Видео - "Шахматы"
+video::VID5_Шахматы.mp4[opts="muted"]
+
 
 == Выводы
 [.text-left]
-//Выводы по лабораторной работе
+В ходе данной работы были описаны принципы программирования SOLID, а также с помощью данных принципов, написана программа, переключающая светодиоды по алгоритму "шахматы".
 
 //[.text-center]
 //== Ответы на контрольные вопросы
