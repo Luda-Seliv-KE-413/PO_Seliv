@@ -39,7 +39,7 @@ image::UML.png[]
 
 Листинги Pin.h и IPin.h - были представлены в предыдущих отчетах и не понесли никаких изменений.
 
-Листинг imode.h
+Листинг IMode.h
 [source, cpp, linenums]
 ----
 #ifndef IMODE
@@ -89,7 +89,7 @@ private:
 #endif
 ----
 
-Листинг treeng.h
+Листинг Treeng.h
 [source, cpp, linenums]
 ----
 #ifndef TREENG
@@ -126,7 +126,7 @@ private:
 #endif
 ----
 
-Листинг chess.h
+Листинг Chess.h
 [source, cpp, linenums]
 ----
 #ifndef CHESS
