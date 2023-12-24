@@ -23,9 +23,92 @@ toc::[]
 Различают маскируемые и немаскируемые прерывания.
 
 Управление и обработка прерываниями производится контроллером приоритетных векторных прерываний (NVIC), который является частью ядра Cortex-M.
+
 == Ход работы
 
+В startupF411RE.cpp были добавлены строчки:
+[source, cpp, linenums]
+----
+#include "timerconfig.h"
+tTimer2::handler,             //TIM2  	
+tTimer5::handler,	        //TIM5 global interrupt
+----
+
+Листинг pin.h
+
+[source, cpp, linenums]
+----
+
+----
+
+Листинг imode.h
+
+[source, cpp, linenums]
+----
+
+----
+
+Листинг alldiod.h
+
+[source, cpp, linenums]
+----
+
+----
+
+Листинг garland.h
+
+[source, cpp, linenums]
+----
+
+----
+
+Листинг ibutton.h
+
+[source, cpp, linenums]
+----
+
+----
+
+Листинг button.h
+
+[source, cpp, linenums]
+----
+
+----
+
+
+Листинг timerconfig.h
+
+[source, cpp, linenums]
+----
+
+----
+
+
+Листинг timer2.h
+
+[source, cpp, linenums]
+----
+
+----
+
+Листинг timer5.h
+
+[source, cpp, linenums]
+----
+
+----
+
+Листинг main.cpp
+
+[source, cpp, linenums]
+----
+
+----
+
+//.Работа кода
+//video::__.mp4[]
 
 == Выводы
 [.text-left]
-//Выводы по лабораторной работе
+В ходе данной работы было проведено ознакомление с прерываниями. Была написана программа, которая реализует переключение светодиодов при помощи прерываний и проверяет нажата ли кнопка через прерывание, по нажатию менялся период "моргания" на 0,1 секунды.
