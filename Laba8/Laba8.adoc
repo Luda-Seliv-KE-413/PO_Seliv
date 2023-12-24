@@ -223,7 +223,6 @@ private:
 #endif
 ----
 
-
 Листинг timerconfig.h
 
 [source, cpp, linenums]
@@ -232,8 +231,6 @@ private:
 #define TIMCONFIG
 
 #include "pin.h"
-#include "treeng.h"
-#include "chess.h"
 #include "alldiod.h"
 #include "garland.h"
 #include "gpioaregisters.hpp"
@@ -248,19 +245,16 @@ extern Pin<GPIOC, 5> pin1;
 extern Pin<GPIOC, 8> pin2;
 extern Pin<GPIOC, 9> pin3;
 extern Pin<GPIOA, 5> pin4;
-extern Button<GPIOC, 13> btn;
+extern Button<GPIOC, 13> button;
 
 extern Alldiod<pin1, pin2, pin3, pin4> all;
-extern Treeng<pin1, pin2, pin3, pin4> el;
-extern Chess<pin1, pin2, pin3, pin4> chess;
-extern Garland<all, el, chess> garland;
+extern Garland<all> garland;
 
 using tTimer5 = Timer5<garland>; 
-using tTimer2 = Timer2<btn>; 
+using tTimer2 = Timer2<button>; 
 
 #endif
 ----
-
 
 Листинг timer2.h
 
@@ -271,7 +265,7 @@ using tTimer2 = Timer2<btn>;
 
 #include "tim2registers.hpp" //for TIM5
 
-template <auto& btn>
+template <auto& button>
 class Timer2
 {
 public:
@@ -280,9 +274,9 @@ public:
     if(TIM2::SR::UIF::Get() == 1 and
       TIM2::DIER::UIE::Enable::IsSet())
     {
-      if(btn.IsPressed())
+      if(button.IsPressed())
       {
-        btn.SetFlagInterruption(true);
+        button.SetFlagInterruption(true);
       }
       TIM2::SR::UIF::Set(0);
     }
@@ -328,8 +322,8 @@ public:
 #include "tim5registers.hpp" // for Tim5
 #include "tim2registers.hpp" // for Tim2
 #include "pin.h" // for Pin
-#include "treeng.h" // for TreeMode
-#include "chess.h" // for ChessMode
+#include "treeng.h" // for TreeNG
+#include "chess.h" // for Chess
 #include "alldiod.h" // for AllMode
 #include "garland.h" // for Garland
 #include "button.h" // for Button
@@ -346,18 +340,14 @@ int __low_level_init(void)
 {  
   RCC::APB1ENR::TIM5EN::Enable::Set();
   RCC::APB1ENR::TIM2EN::Enable::Set();
-
   NVIC::ISER0::Write(1<<28U); // разрешение глоабльного прерывания Tim2
-  
   TIM2::PSC::Write(15999U);
   TIM2::CR1::URS::OverflowEvent::Set();
   TIM2::ARR::Write(100U);
   TIM2::SR::UIF::Set(0);
   TIM2::CNT::Write(0);
   TIM2::DIER::UIE::Enable::Set();
-
   NVIC::ISER1::Set(1<<18); // разрешение глоабльного прерывания Tim5
-  
   TIM5::PSC::Write(15999U);
   TIM5::CR1::URS::Value1::Set();
   TIM5::ARR::Write(500U);
@@ -379,7 +369,7 @@ Pin<GPIOC, 8> pin2;
 Pin<GPIOC, 9> pin3;
 Pin<GPIOA, 5> pin4;
 
-Button<GPIOC, 13> btn;
+Button<GPIOC, 13> button;
 
 Alldiod<pin1, pin2, pin3, pin4> all; // Создание объекта класса режим "все"
 Garland<all> garland; // Создание объекта класса режим "гирлянда"
@@ -402,10 +392,10 @@ int main()
       garland.SetFlagInterruption(false);
     }
     
-    if(btn.GetFlagInterruption())
+    if(button.GetFlagInterruption())
     {
       period = (period < tMsec(1000)) ? (period + tMsec(100U)) : tMsec(500U) ;
-      btn.SetFlagInterruption(false);
+      button.SetFlagInterruption(false);
       Tim5Arr(period);
     }
   }
